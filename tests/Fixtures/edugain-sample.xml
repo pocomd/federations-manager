@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<md:EntitiesDescriptor
+    xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
+    xmlns:mdrpi="urn:oasis:names:tc:SAML:metadata:rpi"
+    xmlns:mdui="urn:oasis:names:tc:SAML:metadata:ui"
+    xmlns:shibmd="urn:mace:shibboleth:metadata:1.0"
+    Name="https://edugain.org">
+
+    <md:EntityDescriptor entityID="https://idp1.edugain-test.example.com/shibboleth">
+        <md:Extensions>
+            <mdrpi:RegistrationInfo registrationAuthority="https://www.edugain.org/"/>
+        </md:Extensions>
+        <md:IDPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+            <md:Extensions>
+                <shibmd:Scope regexp="false">edugain-test.example.com</shibmd:Scope>
+                <mdui:UIInfo>
+                    <mdui:DisplayName xml:lang="en">EduGAIN Test IdP 1</mdui:DisplayName>
+                    <mdui:Description xml:lang="en">A test identity provider from eduGAIN fixture</mdui:Description>
+                </mdui:UIInfo>
+            </md:Extensions>
+            <md:SingleSignOnService
+                Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+                Location="https://idp1.edugain-test.example.com/idp/sso"/>
+        </md:IDPSSODescriptor>
+    </md:EntityDescriptor>
+
+    <md:EntityDescriptor entityID="https://idp2.edugain-test.example.com/shibboleth">
+        <md:Extensions>
+            <mdrpi:RegistrationInfo registrationAuthority="https://www.edugain.org/"/>
+        </md:Extensions>
+        <md:IDPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+            <md:Extensions>
+                <shibmd:Scope regexp="false">edugain-test2.example.com</shibmd:Scope>
+                <mdui:UIInfo>
+                    <mdui:DisplayName xml:lang="en">EduGAIN Test IdP 2</mdui:DisplayName>
+                    <mdui:Description xml:lang="en">A second test identity provider from eduGAIN fixture</mdui:Description>
+                </mdui:UIInfo>
+            </md:Extensions>
+            <md:SingleSignOnService
+                Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+                Location="https://idp2.edugain-test.example.com/idp/sso"/>
+        </md:IDPSSODescriptor>
+    </md:EntityDescriptor>
+
+    <md:EntityDescriptor entityID="https://sp1.edugain-test.example.com/shibboleth">
+        <md:Extensions>
+            <mdrpi:RegistrationInfo registrationAuthority="https://www.edugain.org/"/>
+        </md:Extensions>
+        <md:SPSSODescriptor
+            AuthnRequestsSigned="true"
+            WantAssertionsSigned="true"
+            protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+            <md:Extensions>
+                <mdui:UIInfo>
+                    <mdui:DisplayName xml:lang="en">EduGAIN Test SP 1</mdui:DisplayName>
+                    <mdui:Description xml:lang="en">A test service provider from eduGAIN fixture</mdui:Description>
+                </mdui:UIInfo>
+            </md:Extensions>
+            <md:AssertionConsumerService
+                Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+                Location="https://sp1.edugain-test.example.com/Shibboleth.sso/SAML2/POST"
+                index="1"/>
+        </md:SPSSODescriptor>
+    </md:EntityDescriptor>
+
+</md:EntitiesDescriptor>

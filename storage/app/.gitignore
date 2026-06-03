@@ -1,0 +1,7 @@
+*
+!private/
+!public/
+!schemas/
+!schemas/*
+!metadata/
+!.gitignore

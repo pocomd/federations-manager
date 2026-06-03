@@ -1,0 +1,99 @@
+# =============================================================================
+# Federation Registry — Queue Worker (systemd service)
+# =============================================================================
+#
+# WHAT THIS SERVICE DOES
+# ----------------------
+# The application does not process background tasks inline with web requests.
+# Instead it places jobs into a database queue and relies on this worker
+# process to pick them up and execute them. Jobs include:
+#
+#   - Metadata generation   Building and signing the SAML aggregate XML for
+#                           every active federation. Without the worker, the
+#                           metadata feed is never refreshed.
+#
+#   - Certificate monitoring Checking entity certificates for expiry and
+#                           sending advance-warning e-mails to operators.
+#
+#   - Webhook delivery      POSTing signed event payloads to subscriber URLs
+#                           (metadata.generated, entity.approved, etc.).
+#
+#   - Entity validation     Running SAML metadata compliance checks against
+#                           the REFEDS / eduGAIN rule set for every entity.
+#
+#   - eduGAIN sync          Pulling the upstream eduGAIN aggregate and
+#                           reconciling it with the local entity list.
+#
+#   - Health heartbeat      Writing a timestamp to Redis every minute so the
+#                           /health endpoint can confirm the scheduler is
+#                           alive. If this worker stops, the health check
+#                           immediately reports "No heartbeat".
+#
+# WHY IT MUST ALWAYS RUN
+# ----------------------
+# If this service is stopped or crashes and is not restarted:
+#   * Federation metadata becomes stale and eventually expired.
+#   * Certificate-expiry warnings are never sent.
+#   * Webhook subscribers stop receiving events.
+#   * The System Health page shows "No heartbeat — cron or queue worker may not be running".
+#
+# This service is therefore as critical to the application as the web server.
+# Treat it like nginx or php-fpm: it must start on boot and restart on failure.
+#
+# INSTALLATION
+# ------------
+# 1. Copy this file to /etc/systemd/system/
+# 2. Adjust User= and WorkingDirectory= if your install path differs.
+# 3. Run:
+#       sudo systemctl daemon-reload
+#       sudo systemctl enable --now federations-management
+#       sudo systemctl status federations-management
+#
+# After deploying application updates, restart the worker gracefully so it
+# picks up the new code without dropping in-flight jobs:
+#       php artisan queue:restart
+#       # systemd will restart the process automatically via Restart=always
+#
+# =============================================================================
+
+[Unit]
+Description=Federation Registry Queue Worker
+# Wait for the database and cache to be available before starting.
+After=network.target mysql.service mariadb.service redis.service
+Wants=mysql.service redis.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+
+# Adjust if the application lives elsewhere.
+WorkingDirectory=/var/www/federations-manager
+
+# --queue          Priority-ordered list: high → default → low.
+#                  New jobs should use one of these three names — no new queue
+#                  names are needed and this service file never needs updating.
+# --sleep=3        Poll the database every 3 seconds when the queue is empty.
+# --tries=3        Retry a failing job up to 3 times before marking it failed.
+# --max-time=3600  Restart the process after 1 hour to free any leaked memory.
+# --timeout=90     Kill a single job that takes longer than 90 seconds.
+ExecStart=/usr/bin/php /var/www/federations-manager/artisan queue:work database \
+    --queue=high,default,low \
+    --sleep=3 \
+    --tries=3 \
+    --max-time=3600 \
+    --timeout=90
+
+# Restart the worker automatically if it exits for any reason.
+Restart=always
+RestartSec=5
+
+# Write all output to the application log directory.
+StandardOutput=append:/var/www/federations-manager/storage/logs/worker.log
+StandardError=append:/var/www/federations-manager/storage/logs/worker.log
+
+# Give in-flight jobs time to finish before a forced stop (matches --max-time).
+TimeoutStopSec=3600
+
+[Install]
+WantedBy=multi-user.target
