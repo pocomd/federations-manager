@@ -256,7 +256,7 @@ Route::middleware(EnsureAuthenticated::class)->group(function () {
         ->name('metadata.generate')
         ->middleware('can:metadata.generate');
 
-    Route::get('/metadata/{federation}/download', [MetadataGenerationController::class, 'download'])
+    Route::get('/metadata/{federation}/download.xml', [MetadataGenerationController::class, 'download'])
         ->name('metadata.download')
         ->middleware('can:metadata.view');
 
@@ -493,9 +493,9 @@ Route::middleware(EnsureAuthenticated::class)->group(function () {
 
 // ── Public (unauthenticated) metadata feed endpoints ──────────────────────────
 // Consumed by eduGAIN and remote federations; no session or CSRF required.
-Route::get('/metadata/{federation}/feed', [MetadataGenerationController::class, 'feed'])
+Route::get('/metadata/{federation}/feed.xml', [MetadataGenerationController::class, 'feed'])
     ->name('metadata.feed');
-Route::get('/metadata/{federation}/edugain', [MetadataGenerationController::class, 'eduGainFeed'])
+Route::get('/metadata/{federation}/edugain.xml', [MetadataGenerationController::class, 'eduGainFeed'])
     ->name('metadata.edugain');
 
 // ── Jagger-compatible legacy metadata endpoint ────────────────────────────────

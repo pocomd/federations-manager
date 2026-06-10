@@ -107,10 +107,13 @@ class MetadataGenerationController extends Controller
             return back()->with('error', 'Metadata not yet generated for this federation.');
         }
 
-        return response($xml, 200)
-            ->header('Content-Type', 'application/samlmetadata+xml')
-            ->header('Content-Disposition',
-                'attachment; filename="' . $federation->slug . '-metadata.xml"');
+        return response($xml, 200, [
+            'Content-Type'        => 'application/samlmetadata+xml',
+            'Content-Disposition' => 'attachment; filename="' . $federation->slug . '-metadata.xml"',
+            'Cache-Control'       => 'no-cache, must-revalidate',
+            'X-Federation'        => $federation->name,
+            'X-Generated-At'      => (string) $federation->metadata_generated_at,
+        ]);
     }
 
     /**
@@ -140,10 +143,11 @@ class MetadataGenerationController extends Controller
         }
 
         return response($xml, 200, [
-            'Content-Type'   => 'application/samlmetadata+xml',
-            'Cache-Control'  => 'no-cache, must-revalidate',
-            'X-Federation'   => $federation->name,
-            'X-Generated-At' => (string) $federation->metadata_generated_at,
+            'Content-Type'        => 'application/samlmetadata+xml',
+            'Content-Disposition' => 'attachment; filename="' . $federation->slug . '-feed.xml"',
+            'Cache-Control'       => 'no-cache, must-revalidate',
+            'X-Federation'        => $federation->name,
+            'X-Generated-At'      => (string) $federation->metadata_generated_at,
         ]);
     }
 
